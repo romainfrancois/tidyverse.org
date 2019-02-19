@@ -17,7 +17,6 @@ photo:
 ---
 
 ```{r setup, include = FALSE}
-library(dplyr)
 knitr::opts_chunk$set(
   collapse = TRUE, comment = "#>", 
   fig.width = 7, 
@@ -53,6 +52,8 @@ before we put a `r emo::ji("ring")` on them. Let's illustrate them with a subset
 well-known `gapminder` data. 
 
 ```{r}
+library(dplyr)
+
 oceania <- gapminder::gapminder %>% 
   filter(continent == "Oceania") %>% 
   mutate(yr1952 = year - 1952) %>% 
@@ -83,7 +84,6 @@ oceania %>%
   
 ```{r}
 oceania %>% 
-  mutate(yr1952 = year - 1952) %>% 
   group_map(~broom::tidy(stats::lm(lifeExp ~ yr1952, data = .x)))
 ```
   
