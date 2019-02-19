@@ -221,7 +221,7 @@ iris %>%
   group_trim()
 ```
 
-## New grouping fuctions
+## New grouping functions
 
 The grouping family is extended with new functions:
 

@@ -96,12 +96,11 @@ df
 #> 5 b     f         2     5
 df %>% 
   count(f1)
-#> # A tibble: 3 x 2
+#> # A tibble: 2 x 2
 #>   f1        n
 #>   <fct> <int>
 #> 1 a         3
 #> 2 b         2
-#> 3 c         0
 ```
 
 Where previous versions of `dplyr` would have created only two groups (for levels `a` and `b`), 
@@ -128,18 +127,13 @@ by `f1` and `f2` we get 9 groups,
 ```r
 df %>% 
   count(f1, f2)
-#> # A tibble: 9 x 3
+#> # A tibble: 4 x 3
 #>   f1    f2        n
 #>   <fct> <fct> <int>
 #> 1 a     d         2
 #> 2 a     e         1
-#> 3 a     f         0
-#> 4 b     d         0
-#> 5 b     e         1
-#> 6 b     f         1
-#> 7 c     d         0
-#> 8 c     e         0
-#> 9 c     f         0
+#> 3 b     e         1
+#> 4 b     f         1
 ```
 
 When factors and non factors are involved in the grouping, the number of 
@@ -150,12 +144,11 @@ to one group per level, but non factors only create groups based on observed dat
 ```r
 df %>% 
   count(f1, x)
-#> # A tibble: 3 x 3
+#> # A tibble: 2 x 3
 #>   f1        x     n
 #>   <fct> <dbl> <int>
 #> 1 a         1     3
 #> 2 b         2     2
-#> 3 c        NA     0
 ```
 
 In this example, we group by `f1` then `x`. At the first layer, grouping on `f1` creates
@@ -171,26 +164,23 @@ consequently has no values for the vector `x`. In that case, [`group_by()`](http
 ```r
 df %>% 
   count(x, f1)
-#> # A tibble: 6 x 3
+#> # A tibble: 2 x 3
 #>       x f1        n
 #>   <dbl> <fct> <int>
 #> 1     1 a         3
-#> 2     1 b         0
-#> 3     1 c         0
-#> 4     2 a         0
-#> 5     2 b         2
-#> 6     2 c         0
+#> 2     2 b         2
 ```
 
 When we group by `x` then `f1` we initially split the data according to `x` which 
 gives 2 groups. Each of these two groups is then further divided in 3 groups, 
 i.e. one for each level of `f1`. 
 
-> We've added the possibility to drop the empty groups, and hence 
-> get the previous behaviour by using `group_by(.drop = TRUE)`. 
->
-> This is not the default value, because we still strongly believe that 
-> all levels of factors should be represented in the grouping structure. 
+> The behaviour describe above represented too much of a radical breaking change, 
+> so for this version, and probably a few future versions, keeping the empty 
+> groups will require adding `.drop = FALSE` to the arguments of `group_by()`
+
+> The default of dropping the empty groups is consistent with previous versions 
+> of dplyr, but now we have a way to keep the empty groups if needed. 
 
 ## Group preservation
 
@@ -201,16 +191,12 @@ The grouping structure is more coherently preserved by dplyr verbs.
 df %>% 
   group_by(x, f1) %>% 
   summarise(y = mean(y))
-#> # A tibble: 6 x 3
+#> # A tibble: 2 x 3
 #> # Groups:   x [2]
 #>       x f1        y
 #>   <dbl> <fct> <dbl>
 #> 1     1 a       2  
-#> 2     1 b     NaN  
-#> 3     1 c     NaN  
-#> 4     2 a     NaN  
-#> 5     2 b       4.5
-#> 6     2 c     NaN
+#> 2     2 b       4.5
 ```
 
 The expression `mean(y)` is evaluated for the empty groups as well, and gives 
@@ -231,7 +217,7 @@ df %>%
   group_by(x, f1) %>% 
   filter(y < 4)
 #> # A tibble: 3 x 4
-#> # Groups:   x, f1 [3]
+#> # Groups:   x, f1 [1]
 #>   f1    f2        x     y
 #>   <fct> <fct> <dbl> <int>
 #> 1 a     d         1     1
@@ -253,7 +239,7 @@ df %>%
   group_by(x, f1) %>% 
   filter(y < 5, .preserve = FALSE)
 #> # A tibble: 4 x 4
-#> # Groups:   x, f1 [6]
+#> # Groups:   x, f1 [2]
 #>   f1    f2        x     y
 #>   <fct> <fct> <dbl> <int>
 #> 1 a     d         1     1
@@ -321,7 +307,7 @@ iris %>%
 #> # … with 90 more rows
 ```
 
-## New grouping fuctions
+## New grouping functions
 
 The grouping family is extended with new functions:
 
@@ -529,7 +515,7 @@ mtcars %>%
 #> # A tibble: 6 x 11
 #> # Groups:   cyl [3]
 #>     cyl   mpg  disp    hp  drat    wt  qsec    vs    am  gear  carb
-#> * <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>
+#>   <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>
 #> 1     4  22.8  108     93  3.85  2.32  18.6     1     1     4     1
 #> 2     4  24.4  147.    62  3.69  3.19  20       1     0     4     2
 #> 3     6  21    160    110  3.9   2.62  16.5     0     1     4     4
@@ -543,7 +529,7 @@ mtcars %>%
 #> # A tibble: 3 x 2
 #> # Groups:   cyl [3]
 #>     cyl mod     
-#> * <dbl> <list>  
+#>   <dbl> <list>  
 #> 1     4 <S3: lm>
 #> 2     6 <S3: lm>
 #> 3     8 <S3: lm>
